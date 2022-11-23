@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wildmeet.gatewayservice.jwt.JwtUtil;
 import com.wildmeet.gatewayservice.response.ResponseResult;
 import io.jsonwebtoken.JwtException;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
 import org.springframework.cloud.gateway.filter.factory.AbstractGatewayFilterFactory;
@@ -31,8 +34,13 @@ public class CustomAuthFilter extends AbstractGatewayFilterFactory<CustomAuthFil
         this.jwtUtil = jwtUtil;
     }
 
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Data
     public static class Config {
         // application.yml 파일에서 지정한 filer의 Argument값을 받는 부분
+        private String name;
+        private String fallbackUri;
     }
 
     @Override

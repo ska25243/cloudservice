@@ -19,6 +19,8 @@ spring:
 
   cloud:
     gateway:
+      default-filters:
+        - CircuitBreaker=myCircuitBreaker
       routes:
         - id: user-service
           uri: lb://USER-SERVICE
@@ -27,9 +29,44 @@ spring:
             - After=2017-01-20T17:42:47.789-07:00
             - Method=GET
           filters:
-#            - RewritePath=/user/?(?<segment>.*), /$\{segment}
+            - RewritePath=/?(?<segment>.*), /$\{segment}
             - CustomAuthFilter
+            - name: CircuitBreaker
+              args:
+                name: fallback
+                fallbackUri: forward:/fallback    # fallback은 Circuit 상태와 상관 없이, fail조건에 해당된 경우 호출됨
+              metadata:
+                  connect-timeout: 2500
+                  response-timeout: 2500
+#            - CustomAuthFilter
 #        - id: order-service
 #          uri: lb://ORDER-SERVICE
 #          predicates:
 #            - Path=/order/**
+
+#resilience4j.circuitbreaker:
+#  configs:
+#    default:
+#      slidingWindowSize: 10
+#      minimumNumberOfCalls: 5
+#      permittedNumberOfCallsInHalfOpenState: 3
+#      automaticTransitionFromOpenToHalfOpenEnabled: true
+#      waitDurationInOpenState: 2s
+#      failureRateThreshold: 50
+#      eventConsumerBufferSize: 10
+#      recordExceptions:
+#        - org.springframework.web.client.HttpServerErrorException
+#        - java.io.IOException
+#      ignoreExceptions:
+#        - java.lang.IllegalStateException
+#    shared:
+#      slidingWindowSize: 100
+#      permittedNumberOfCallsInHalfOpenState: 30
+#      waitDurationInOpenState: 1s
+#      failureRateThreshold: 50
+#      eventConsumerBufferSize: 10
+#      ignoreExceptions:
+#        - java.lang.IllegalStateException
+#  instances:
+#    backendA:
+#      baseConfig: default
