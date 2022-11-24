@@ -1,5 +1,6 @@
 package com.wildmeet.gatewayservice.jwt;
 
+import com.wildmeet.gatewayservice.jwt.domain.TokenInfo;
 import io.jsonwebtoken.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,13 +27,42 @@ public class JwtUtil {
         return null;
     }
 
-    public String generateToken(String id) {
+    public TokenInfo generateToken(String id) {
         Claims claims = Jwts.claims().setSubject(id);
+//        long nowMillis = System.currentTimeMillis();
+//        long expMillis = nowMillis + tokenValidity;
+//        Date exp = new Date(expMillis);
+//        return Jwts.builder().setClaims(claims).setIssuedAt(new Date(nowMillis)).setExpiration(exp)
+//                .signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
+
+//        String authorities = authentication.getAuthorities().stream()
+//                .map(GrantedAuthority::getAuthority)
+//                .collect(Collectors.joining(","));
+
+        String name = "sys";
+
         long nowMillis = System.currentTimeMillis();
         long expMillis = nowMillis + tokenValidity;
+        // Access Token 생성
         Date exp = new Date(expMillis);
-        return Jwts.builder().setClaims(claims).setIssuedAt(new Date(nowMillis)).setExpiration(exp)
-                .signWith(SignatureAlgorithm.HS512, jwtSecret).compact();
+        String accessToken = Jwts.builder()
+                .setSubject(name)
+                .claim("auth", claims)
+                .setExpiration(exp)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+
+        // Refresh Token 생성
+        String refreshToken = Jwts.builder()
+                .setExpiration(exp)
+                .signWith(SignatureAlgorithm.HS512, jwtSecret)
+                .compact();
+
+        return TokenInfo.builder()
+                .grantType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
     public void validateToken(final String token) throws JwtException {
